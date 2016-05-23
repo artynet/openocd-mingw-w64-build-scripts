@@ -32,6 +32,9 @@ do
 elif [ "$1" == "checkout-primo" ]
   then
     ACTION_GIT="$1"
+elif [ "$1" == "clone" ]
+  then
+    ACTION_GIT="$1"
 elif [ "$1" == "checkout-master" ]
   then
     ACTION_GIT="$1"
@@ -123,8 +126,7 @@ then
   rm -rf "${OPENOCD_WORK_FOLDER}/${LIBUSB_W32_FOLDER}"
   rm -rf "${OPENOCD_WORK_FOLDER}/${LIBUSB1}"
   rm -rf "${OPENOCD_WORK_FOLDER}/${HIDAPI}"
-  rm -rf "${OPENOCD_WORK_FOLDER}"
-  rm -rf "${OPENOCD_WORKING_FOLDER}"/objdir*
+  rm -rf "${OPENOCD_WORKING_FOLDER}"/*.tar.bz2
 
   echo
   echo "Clean completed. Proceed with a regular build."
@@ -170,6 +172,7 @@ then
     cd "${OPENOCD_GIT_FOLDER}"
     git pull
     git checkout master
+    git reset --hard HEAD
     git submodule update
 
     rm -rf "${OPENOCD_BUILD_FOLDER}/openocd"
@@ -198,6 +201,7 @@ then
     cd "${OPENOCD_GIT_FOLDER}"
     git pull
     git checkout primo
+    git reset --hard HEAD
     git submodule update
 
     rm -rf "${OPENOCD_BUILD_FOLDER}/openocd"
@@ -218,6 +222,36 @@ then
   fi
 fi
 
+if [ "${ACTION_GIT}" == "clone" ]
+then
+    if [ ! -d "${OPENOCD_GIT_FOLDER}" ]
+    then
+        mkdir -p "${OPENOCD_WORK_FOLDER}"
+        cd "${OPENOCD_WORK_FOLDER}"
+
+        # For regular read/only access, use the git url.
+        git clone https://github.com/arduino-org/openocd-official-mirror.git openocd-arduino
+
+        # Change to the gnuarmeclipse branch. On subsequent runs use "git pull".
+        cd "${OPENOCD_GIT_FOLDER}"
+        # git checkout gnuarmeclipse
+        git submodule update
+
+        # Prepare autotools.
+        echo
+        echo "bootstrap..."
+
+        cd "${OPENOCD_GIT_FOLDER}"
+        ./bootstrap
+
+        echo
+        echo "Clone completed. Proceed with a regular build."
+        exit 0
+    else
+        echo "No git folder."
+        exit 1
+    fi
+fi
 
 # ----- Begin of common part ---------------------------------------------------
 
@@ -236,7 +270,7 @@ then
   cd "${OPENOCD_WORK_FOLDER}"
 
   # For regular read/only access, use the git url.
-  git clone git://repo.or.cz/openocd.git openocd-arduino
+  git clone https://github.com/arduino-org/openocd-official-mirror.git openocd-arduino
 
   # Change to the gnuarmeclipse branch. On subsequent runs use "git pull".
   cd "${OPENOCD_GIT_FOLDER}"
@@ -684,7 +718,18 @@ echo "DLLs:"
 ${CROSS_COMPILE_PREFIX}-objdump -x "${OPENOCD_INSTALL_FOLDER}/bin/openocd.exe" | grep -i 'DLL Name'
 
 # renaming folder
-mv ${OPENOCD_INSTALL_FOLDER} ${OPENOCD_INSTALL_FOLDER}-${stag}
+mv ${OPENOCD_INSTALL_FOLDER} ${OPENOCD_WORKING_FOLDER}/OpenOCD-0.10.x-arduino
+
+cd ${OPENOCD_WORKING_FOLDER}
+
+tar cfvj OpenOCD-0.10.x-arduino.org-win${TARGET_BITS}.tar.bz2 OpenOCD-0.10.x-arduino/
+
+# Removing build folder
+rm -rf ${OPENOCD_WORKING_FOLDER}/OpenOCD-0.10.x-arduino
+
+echo ""
+echo "Finished !"
+echo ""
 
 echo
 if [ "${RESULT}" == "0" ]
