@@ -722,7 +722,7 @@ mv ${OPENOCD_INSTALL_FOLDER} ${OPENOCD_WORKING_FOLDER}/OpenOCD-0.10.x-arduino
 
 cd ${OPENOCD_WORKING_FOLDER}
 
-tar cfvj OpenOCD-0.10.x-arduino.org-win${TARGET_BITS}.tar.bz2 OpenOCD-0.10.x-arduino/
+tar cfvj OpenOCD-0.10.x-arduino.org-win${TARGET_BITS}-${stag}.tar.bz2 OpenOCD-0.10.x-arduino/
 
 # Removing build folder
 rm -rf ${OPENOCD_WORKING_FOLDER}/OpenOCD-0.10.x-arduino
