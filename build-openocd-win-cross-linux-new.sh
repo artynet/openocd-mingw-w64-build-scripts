@@ -32,6 +32,9 @@ do
 elif [ "$1" == "checkout-primo" ]
   then
     ACTION_GIT="$1"
+elif [ "$1" == "checkout-nrf52" ]
+  then
+    ACTION_GIT="$1"
 elif [ "$1" == "clone" ]
   then
     ACTION_GIT="$1"
@@ -110,7 +113,7 @@ ${CROSS_COMPILE_PREFIX}-gcc --version
 unix2dos --version >/dev/null 2>/dev/null
 git --version >/dev/null
 automake --version >/dev/null
-makensis -VERSION >/dev/null
+# makensis -VERSION >/dev/null
 
 # Process actions.
 
@@ -222,6 +225,35 @@ then
   fi
 fi
 
+if [ "${ACTION_GIT}" == "checkout-nrf52" ]
+then
+  if [ -d "${OPENOCD_GIT_FOLDER}" ]
+  then
+
+    cd "${OPENOCD_GIT_FOLDER}"
+    git pull
+    git checkout nrf52-test
+    git reset --hard HEAD
+    git submodule update
+
+    rm -rf "${OPENOCD_BUILD_FOLDER}/openocd"
+
+    # Prepare autotools.
+    echo
+    echo "bootstrap..."
+
+    cd "${OPENOCD_GIT_FOLDER}"
+    ./bootstrap
+
+    echo
+    echo "Pull completed. Proceed with a regular build."
+    exit 0
+  else
+	echo "No git folder."
+    exit 1
+  fi
+fi
+
 if [ "${ACTION_GIT}" == "clone" ]
 then
     if [ ! -d "${OPENOCD_GIT_FOLDER}" ]
@@ -270,7 +302,7 @@ then
   cd "${OPENOCD_WORK_FOLDER}"
 
   # For regular read/only access, use the git url.
-  git clone https://github.com/arduino-org/openocd-official-mirror.git openocd-arduino
+  git clone https://github.com/arduino-org/openocd-official-mirror.git -b nrf52-test openocd-arduino
 
   # Change to the gnuarmeclipse branch. On subsequent runs use "git pull".
   cd "${OPENOCD_GIT_FOLDER}"
@@ -614,6 +646,7 @@ cd "${OPENOCD_BUILD_FOLDER}/openocd"
 # make ${MAKE_JOBS} bindir="bin" pkgdatadir="" all pdf html
 make ${MAKE_JOBS}
 make install
+make distclean
 
 echo
 echo "copy dynamic libs..."
@@ -718,14 +751,14 @@ echo "DLLs:"
 ${CROSS_COMPILE_PREFIX}-objdump -x "${OPENOCD_INSTALL_FOLDER}/bin/openocd.exe" | grep -i 'DLL Name'
 
 # renaming folder
-mv ${OPENOCD_INSTALL_FOLDER} ${OPENOCD_WORKING_FOLDER}/OpenOCD-0.10.x-arduino
+mv ${OPENOCD_INSTALL_FOLDER} ${OPENOCD_WORKING_FOLDER}/OpenOCD-0.9.0-arduino
 
 cd ${OPENOCD_WORKING_FOLDER}
 
-tar cfvj OpenOCD-0.10.x-arduino.org-win${TARGET_BITS}-${stag}.tar.bz2 OpenOCD-0.10.x-arduino/
+tar cfvj OpenOCD-0.9.0-arduino.org-win${TARGET_BITS}-${stag}-nrf52.tar.bz2 OpenOCD-0.9.0-arduino/
 
 # Removing build folder
-rm -rf ${OPENOCD_WORKING_FOLDER}/OpenOCD-0.10.x-arduino
+rm -rf ${OPENOCD_WORKING_FOLDER}/OpenOCD-0.9.0-arduino
 
 echo ""
 echo "Finished !"
