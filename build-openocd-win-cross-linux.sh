@@ -122,7 +122,7 @@ ${CROSS_COMPILE_PREFIX}-gcc --version
 unix2dos --version >/dev/null 2>/dev/null
 git --version >/dev/null
 automake --version >/dev/null
-makensis -VERSION >/dev/null
+# makensis -VERSION >/dev/null
 
 # Process actions.
 
@@ -308,7 +308,7 @@ then
   cd "${OPENOCD_BUILD_FOLDER}/${LIBUSB1}"
   # Configure
   CFLAGS="-Wno-non-literal-null-conversion -m${TARGET_BITS}" \
-  PKG_CONFIG="${OPENOCD_WORKING_FOLDER}/cross-pkg-config" \
+  PKG_CONFIG="${OPENOCD_WORKING_FOLDER}/scripts/cross-pkg-config" \
   "${OPENOCD_WORK_FOLDER}/${LIBUSB1}/configure" \
   --host="${CROSS_COMPILE_PREFIX}" \
   --prefix="${OPENOCD_INSTALL_FOLDER}"
@@ -433,7 +433,7 @@ then
 "${OPENOCD_INSTALL_FOLDER}/lib64/pkgconfig" \
   \
   cmake \
-  -DPKG_CONFIG_EXECUTABLE="${OPENOCD_WORKING_FOLDER}/cross-pkg-config" \
+  -DPKG_CONFIG_EXECUTABLE="${OPENOCD_WORKING_FOLDER}/scripts/cross-pkg-config" \
   -DCMAKE_TOOLCHAIN_FILE="${OPENOCD_WORK_FOLDER}/${LIBFTDI}/cmake/Toolchain-${CROSS_COMPILE_PREFIX}.cmake" \
   -DCMAKE_INSTALL_PREFIX="${OPENOCD_INSTALL_FOLDER}" \
   -DLIBUSB_INCLUDE_DIR="${OPENOCD_INSTALL_FOLDER}/include/libusb-1.0" \
@@ -543,7 +543,7 @@ then
   OUTPUT_DIR="${OPENOCD_BUILD_FOLDER}" \
   \
   CPPFLAGS="-m${TARGET_BITS}" \
-  PKG_CONFIG="${OPENOCD_WORKING_FOLDER}/cross-pkg-config" \
+  PKG_CONFIG="${OPENOCD_WORKING_FOLDER}/scripts/cross-pkg-config" \
   PKG_CONFIG_LIBDIR="${OPENOCD_INSTALL_FOLDER}/lib/pkgconfig" \
   PKG_CONFIG_PREFIX="${OPENOCD_INSTALL_FOLDER}" \
   \
@@ -777,7 +777,14 @@ echo "DLLs:"
 ${CROSS_COMPILE_PREFIX}-objdump -x "${OPENOCD_INSTALL_FOLDER}/bin/openocd.exe" | grep -i 'DLL Name'
 
 # renaming folder
-mv ${OPENOCD_INSTALL_FOLDER} ${OPENOCD_INSTALL_FOLDER}-${stag}
+mv ${OPENOCD_INSTALL_FOLDER} ${OPENOCD_WORKING_FOLDER}/OpenOCD-0.10.x-arduino
+
+cd ${OPENOCD_WORKING_FOLDER}
+
+tar cfvj OpenOCD-0.10.0-arduino.org-win${TARGET_BITS}-${stag}.tar.bz2 OpenOCD-0.10.x-arduino/
+
+# Removing build folder
+rm -rf ${OPENOCD_WORKING_FOLDER}/OpenOCD-0.10.x-arduino
 
 echo
 if [ "${RESULT}" == "0" ]
